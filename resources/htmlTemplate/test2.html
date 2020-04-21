@@ -1,0 +1,69 @@
+﻿<!--Args(title, date ,   name )-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>@{{title}}@</title>
+
+  <style>
+    html, body {
+      margin: 0px;
+      width: 100%;
+      height: 100%;
+    }
+
+    #titleRow {
+      width: 100%;
+      height: 60px;
+      line-height: 60px;
+      background: blue;
+      margin: 0 auto;
+    }
+
+    #outer {
+      width: 100%;
+      height: 300px;
+      margin: 0 auto;
+    }
+
+    #editor-container {
+      width: 80%;
+      margin: 0 auto;
+    }
+
+    #code-editor {
+      width: 100%;
+      height: 100%;
+      font-size: 18px;
+      background: green;
+      color: white;
+      resize: none;
+    }
+
+
+    .c-text {
+      margin: 0;
+      text-align: center;
+    }
+  </style>
+
+</head>
+<body style="background:black; color:white">
+  <div id="titleRow">
+    <h1 class="c-text">@{{title}}我是标题哦@</h1>
+  </div>
+  <div id="titleRow">
+    <h1 class="c-text">@{{date}}@</h1>
+  </div>
+  <div id="titleRow">
+    <h1 class="c-text">@{{name}}我是占位符好好的占着位置@</h1>
+  </div>
+
+  <div id="outer">
+    <div id="editor-container">
+      <textarea id="code-editor" rows="20" cols="80"></textarea>
+      <button style="margin:4px 0 0 0;">OK</button>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+﻿<!--Args(title)-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <link rel="stylesheet" type="text/css" charset="utf-8" media="screen" href="/static/pastebin.css" />
+  <title>Ubuntu Pastebin</title>
+</head>
+
+<body style="background:black">
+  <div id="outerColumnContainer" style="color:white">
+    <div id="contentColumn">
+      <div class="inside">
+        <h1 id="title">Ubuntu Pastebin</h1>
+
+
+
+        <form action="/" method="POST" id="pasteform" name="pasteform">
+          <table>
+            <tr>
+              <td colspan="2">This site is.</td>
+            </tr>
+            <tr>
+              <td colspan="2">Should you reasonably believe that .</td>
+            </tr>
+            <tr><th><label for="id_poster">Poster:</label></th><td><input type="text" name="poster" required=required id="id_poster" maxlength="30" /><br /><span class="helptext">Your name (30 characters max)</span></td></tr>
+            <tr>
+              <th><label for="id_syntax">Syntax:</label></th>
+              <td>
+                <select name="syntax" id="id_syntax">
+                  <option value="text">Plain Text</option>
+
+                  <option value="abap">ABAP</option>
+
+                  <option value="abnf">ABNF</option>
+
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th><label for="id_expiration">Expiration:</label></th>
+              <td>
+                <select name="expiration" id="id_expiration">
+                  <option value="" selected=selected>None</option>
+
+                  <option value="day">A day</option>
+
+                  <option value="week">A week</option>
+
+                  <option value="month">A month</option>
+
+                  <option value="year">A year</option>
+
+                </select><br /><span class="helptext">Paste expirations (or lack thereof) are approximate and not guaranteed</span>
+              </td>
+            </tr>
+            <tr>
+              <th><label for="id_content">Content:</label></th>
+              <td>
+                <textarea name="content" id="id_content" rows="20" cols="80" required=required>
+</textarea>
+              </td>
+            </tr>
+            <tr>
+              <th>&nbsp;</th>
+              <td> <input type="submit" value="Paste!" /> </td>
+            </tr>
+          </table>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+

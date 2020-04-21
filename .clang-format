@@ -1,0 +1,14 @@
+# Visual Studio generated .clang-format file
+
+BasedOnStyle: Google
+
+ColumnLimit: 95
+
+SortIncludes: false 
+
+
+# 自动检测函数的调用和定义是否被格式为每行一个参数(Experimental)
+ExperimentalAutoDetectBinPacking:	true
+
+MaxEmptyLinesToKeep: 3
+
