@@ -154,7 +154,7 @@ message(WS2_LIBRARY                   =  ${WS2_LIBRARY})
 # Add source to this project's executable.
 add_executable (${PROJECT_NAME}   
   "src/main.cpp" 
-  "src/udpClient.cpp" "src/udpServer.cpp")
+  "src/baseUdp/udpClient.cpp" "src/baseUdp/udpServer.cpp")
 
 
 target_include_directories( ${PROJECT_NAME}  

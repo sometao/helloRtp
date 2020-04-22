@@ -14,8 +14,6 @@ extern void startServer(int port);
 
 namespace {
 
-
-
   void testUdpServer(){
     startServer(54321);
   }

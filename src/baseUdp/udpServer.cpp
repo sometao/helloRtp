@@ -9,11 +9,11 @@ using std::endl;
 using std::sprintf;
 using std::string;
 
-
-void startServer(int port) {
-  using seeker::SocketUtil;
+using seeker::SocketUtil;
 
 
+
+static SOCKET initSocket(const string& host, int port) {
   if (SocketUtil::startupWSA() == ERR) {
     cout << "WSAStartup error." << endl;
     throw std::runtime_error("WSAStartup error.");
@@ -23,7 +23,7 @@ void startServer(int port) {
   I_LOG("serverSocket get success.");
 
   sockaddr_in serverAddr = {0};
-  SocketUtil::setSocketAddr(&serverAddr, nullptr);
+  SocketUtil::setSocketAddr(&serverAddr, host.c_str());
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_port = htons(port);
 
@@ -34,34 +34,41 @@ void startServer(int port) {
     throw std::runtime_error("bind error.");
   }
 
+  return serverSocket;
+}
+
+
+void startServer(int port) {
   I_LOG("serverSocket bind success.");
 
   char recvBuf[100];
   char tempBuf[100];
 
+  SOCKET sock = initSocket("0.0.0.0", port);
 
+  SOCKADDR_IN peerAddr;
+  size_t addrLen = sizeof(SOCKADDR_IN);
+  int c = 0;
+  while (true) {
+    int recvNum =
+      recvfrom(sock, recvBuf, 100, 0, (sockaddr*)&peerAddr, (socklen_t*)&addrLen);
+    if (recvNum < 0) {
+      auto msg = fmt::format("error: recv_num={}", recvNum);
+      E_LOG(msg);
+      throw std::runtime_error(msg);
+    }
+    c += 1;
 
-  SOCKADDR_IN addrClient;
-  int len = sizeof(SOCKADDR_IN);  
-
-  int recv_num = recvfrom(serverSocket, recvBuf, 100, 0, (sockaddr*)&addrClient, (socklen_t *)&len);
-  
-  if(recv_num < 0 ) {
-    auto msg  = fmt::format("error: recv_num={}", recv_num);
-    E_LOG(msg);
-    throw std::runtime_error("msg");
+    recvBuf[recvNum] = '\0';
+    I_LOG("[\t{}\t]: recv [{} byte] from [{}]: [{}]", c, recvNum, inet_ntoa(peerAddr.sin_addr), recvBuf);
+    sendto(sock, recvBuf, recvNum, 0, (sockaddr*)&peerAddr, addrLen);
   }
-  
-  I_LOG("recv_num={}", recv_num);
 
-  recvBuf[recv_num] = '\0';  
 
-  I_LOG("serverSocket recvfrom success: {}", recvBuf);
 
-  I_LOG("client ip: {}", inet_ntoa(addrClient.sin_addr));
 
 
   I_LOG("Server finish.");
-  SocketUtil::closeSocket(serverSocket);
+  SocketUtil::closeSocket(sock);
   SocketUtil::cleanWSA();
 }
