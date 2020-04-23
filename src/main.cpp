@@ -2,7 +2,7 @@
 #include "seeker/logger.h"
 #include <iostream>
 #include <string>
-
+#include "jrtplib3/rtpsession.h"
 
 using std::cout;
 using std::endl;
@@ -22,7 +22,6 @@ namespace {
     startClient("127.0.0.1", 54321);
   }
 
-
 }
 
 
@@ -39,12 +38,9 @@ int main(int argc, char* argv[]) {
     } else {
       cout << "input error: " << cmd << endl;
     }
-  
   } else {
     cout << "input error." << endl;
   }
-
-  //testUdp();
 
   I_LOG("DONE.");
 

@@ -33,63 +33,30 @@ endif(MSVC)
 
 
 
+
+
+
 #-------------------------------------
-#  zlib for httplib gzip.
+#  jrtplib.
 #-------------------------------------
-#set(ZLIB_LIBRARY "${PROJECT_SOURCE_DIR}/lib/zlibwapi.lib")
+find_path(JRTPLIB_INCLUDE_DIR jrtplib3/rtpsession.h REQUIRED)
 if(WIN32)
-	find_library(ZLIB_LIBRARY zlibwapi.lib)
+	if(BUILD_DEBUG) 
+		find_library(JRTPLIB_LIBRARY jrtplib_d.lib REQUIRED)
+	else()
+		find_library(JRTPLIB_LIBRARY jrtplib.lib REQUIRED)
+	endif()
 elseif(UNIX)
-	find_library(ZLIB_LIBRARY libz.a)
+
 endif()
 
-
-#-------------------------------------
-#  openSSL for httplib https.
-#-------------------------------------
-#set(LIBSSL_LIBRARY "${PROJECT_SOURCE_DIR}/lib/libssl.lib")
-#set(LIBCRYPTO_LIBRARY "${PROJECT_SOURCE_DIR}/lib/libcrypto.lib")
-if(WIN32)
-	find_library(LIBSSL_LIBRARY libssl.lib)
-	find_library(LIBCRYPTO_LIBRARY libcrypto.lib)
-elseif(UNIX)
-	find_library(LIBSSL_LIBRARY libssl.a)
-	find_library(LIBCRYPTO_LIBRARY libcrypto.a)
-endif()
-
-
-
-
-
-#-------------------------------------
-#  sqlite3 lib.
-#-------------------------------------
-#set(SQLITE3_LIBRARY "${PROJECT_SOURCE_DIR}/lib/sqlite3.lib")
-if(WIN32)
-	find_library(SQLITE3_LIBRARY sqlite3.lib REQUIRED)
-elseif(UNIX)
-	find_library(SQLITE3_LIBRARY libsqlite3.a REQUIRED)
-endif()
-
-
-#-------------------------------------
-#  botan lib.
-#-------------------------------------
-#set(BOTAN_LIBRARY "${PROJECT_SOURCE_DIR}/lib/botan.lib")
-
-find_path(BOTAN_INCLUDE_DIR "botan/botan.h" REQUIRED)
-if(WIN32)
-	find_library(BOTAN_LIBRARY botan.lib REQUIRED)
-elseif(UNIX)
-	find_library(BOTAN_LIBRARY libbotan-2.a REQUIRED)
-endif()
 
 
 #-------------------------------------
 #  PRE BUILD DEFINE
 #-------------------------------------
 if(WIN32)
-	add_definitions(-DZLIB_WINAPI )
+
 elseIf(UNIX)
 	add_definitions(-Wall)
 endif()
@@ -112,15 +79,7 @@ find_package(Threads REQUIRED)
 #-------------------------------------
 #  config.h.in settings
 #-------------------------------------
-
-set(CPPHTTPLIB_THREAD_POOL_COUNT 64)
-option(CPPHTTPLIB_ZLIB_SUPPORT "httplib gzip support" OFF)
-option(CPPHTTPLIB_OPENSSL_SUPPORT "httplib ssl support" ON)
-
-set(SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE)
 set(LOG_FILE_NAME "helloRtp.log")
-set(CA_CERT_FILE "./resources/ca-bundle.crt")
-set(SQLITE_DB_FILE "${PROJECT_SOURCE_DIR}/helloRtp.db")
 
 configure_file(
 	"./cmake/config.h.in" 
@@ -140,13 +99,15 @@ message(CMAKE_LIBRARY_PATH            =  ${CMAKE_LIBRARY_PATH})
 message(PROJECT_SOURCE_DIR            =  ${PROJECT_SOURCE_DIR})
 message(CMAKE_BUILD_TYPE              =  ${CMAKE_BUILD_TYPE})
 
-message(" ===================== SETTING ======================")
+message(" ===================== INCLUDE_DIR ======================")
 
+message(JRTPLIB_INCLUDE_DIR           =  ${JRTPLIB_INCLUDE_DIR})
 
 message(" ==================== LIBRARY PATH =====================")
 message(CMAKE_THREAD_LIBS_INIT		    =  ${CMAKE_THREAD_LIBS_INIT})
 message(CMAKE_DL_LIBS	         		    =  ${CMAKE_DL_LIBS})
 message(WS2_LIBRARY                   =  ${WS2_LIBRARY})
+message(JRTPLIB_LIBRARY               =  ${JRTPLIB_LIBRARY})
 
 
 
@@ -160,6 +121,7 @@ add_executable (${PROJECT_NAME}
 target_include_directories( ${PROJECT_NAME}  
 	PRIVATE 
 		${PROJECT_SOURCE_DIR}/include
+		${JRTPLIB_INCLUDE_DIR}
 )
 
 
@@ -168,6 +130,7 @@ target_include_directories( ${PROJECT_NAME}
 
 target_link_libraries( ${PROJECT_NAME}  
 	PRIVATE 
+		${JRTPLIB_LIBRARY}
 		${WS2_LIBRARY} 
 		${CMAKE_THREAD_LIBS_INIT}
 		${CMAKE_DL_LIBS}
