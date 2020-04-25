@@ -1,16 +1,5 @@
 #pragma once
 
-
-#define littleGift_VERSION_MAJOR @littleGift_VERSION_MAJOR@
-#define littleGift_VERSION_MINOR @littleGift_VERSION_MINOR@
-
-#cmakedefine CPPHTTPLIB_ZLIB_SUPPORT
-#cmakedefine CPPHTTPLIB_OPENSSL_SUPPORT
-
-#cmakedefine CPPHTTPLIB_THREAD_POOL_COUNT @CPPHTTPLIB_THREAD_POOL_COUNT@
 #cmakedefine SPDLOG_ACTIVE_LEVEL @SPDLOG_ACTIVE_LEVEL@
 #cmakedefine LOG_FILE_NAME "@LOG_FILE_NAME@"
-
-#cmakedefine CA_CERT_FILE "@CA_CERT_FILE@"
-#cmakedefine SQLITE_DB_FILE "@SQLITE_DB_FILE@"
 

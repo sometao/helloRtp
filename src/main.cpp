@@ -26,7 +26,7 @@ namespace {
 
 
 
-int main(int argc, char* argv[]) {
+int main_bkp(int argc, char* argv[]) {
   seeker::Logger::init();
 
   if( argc == 2 ) {
@@ -44,5 +44,6 @@ int main(int argc, char* argv[]) {
 
   I_LOG("DONE.");
 
+  return 0;
 
 }
