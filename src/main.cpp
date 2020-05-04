@@ -11,6 +11,8 @@ using std::string;
 
 extern void startClient(const string& targetIp, int port);
 extern void startServer(int port);
+extern int rtpExample1(int argc, char* argv[]);
+extern int recevieAndSave();
 
 namespace {
 
@@ -25,9 +27,7 @@ namespace {
 }
 
 
-
-int main_bkp(int argc, char* argv[]) {
-  seeker::Logger::init();
+void udpTest(int argc, char* argv[]) {
 
   if( argc == 2 ) {
     const string cmd = argv[1];
@@ -43,6 +43,19 @@ int main_bkp(int argc, char* argv[]) {
   }
 
   I_LOG("DONE.");
+
+  return 0;
+
+}
+
+
+
+int main_bkp1(int argc, char* argv[]) {
+  seeker::Logger::init();
+
+  //udpTest(argc, argv);
+  //rtpExample1(argc, argv);
+  recevieAndSave();
 
   return 0;
 

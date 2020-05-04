@@ -118,7 +118,7 @@ void test1(int argc, char* argv[]) {
 }  // namespace
 
 
-int main(int argc, char* argv[]) {
+int rtpExample1(int argc, char* argv[]) {
 
   for(int i = 0; i < argc; i++) {
     cout << i << ": " << argv[i] << endl;

@@ -131,7 +131,7 @@ add_executable (${PROJECT_NAME}
   "src/baseUdp/udpClient.cpp" "src/baseUdp/udpServer.cpp" 
 
 	
-	"src/jrtplibTest/HelloJrtplib.cpp" "src/pch.cpp")
+	"src/jrtplibTest/HelloJrtplib.cpp" "src/pch.cpp" "src/jrtplibTest/receiveAndSave.cpp")
 
 
 target_include_directories( ${PROJECT_NAME}  

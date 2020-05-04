@@ -1,0 +1,17 @@
+
+
+
+#将视频转换为h264 raw格式
+
+
+#rtp推h264裸流
+ffmpeg -re -i .\p4_out4.ts -f h264 rtp://127.0.0.1:50101
+
+
+#ffplay播放h264裸文件
+
+
+#ffplay播放rtp推的h264裸流
+ffplay
+
+
