@@ -6,6 +6,7 @@
 #include "jrtplib3/rtppacket.h"
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
 #include "seeker/common.h"
 #include "seeker/loggerApi.h"
 
@@ -51,7 +52,14 @@ int recevieAndSave() {
   RTPTime starttime = RTPTime::CurrentTime();
 
   int c = 0;
+  uint64_t totalExtLength = 0;
+  uint64_t totalPktLength = 0;
+  uint64_t totalPayLoadLength = 0;
   bool done = false;
+
+  std::ofstream fout("rtp_received.h264", std::ios::binary);
+
+
   while (!done) {
     // std::cout << "send pkt" << std::endl;
     // status = session.SendPacket(silencebuffer, 160);
@@ -63,32 +71,60 @@ int recevieAndSave() {
     session.BeginDataAccess();
     if (session.GotoFirstSource()) {
       do {
-        RTPPacket *packet;
-
+        RTPPacket* packet;
+        // std::cout << "check packet" << std::endl;
         while ((packet = session.GetNextPacket()) != 0) {
+          if (packet->GetPayloadType() != 96) {
+            std::cout << "PayloadType != 96 : [" << packet->GetPayloadType() << "]"
+                      << std::endl;
+            continue;
+          }
+
           c += 1;
-          auto msg = fmt::format(
-              "[{}] Got pkt SequenceNumber={} extendedSequenceNumber={} SSRC={} length={}",
-              c,
-              packet->GetSequenceNumber(),
-              packet->GetExtendedSequenceNumber(),
-              packet->GetSSRC(),
-              packet->GetPacketLength());
-          std::cout << msg << std::endl;
+          totalPktLength += packet->GetPacketLength();
+          totalPayLoadLength += packet->GetPayloadLength();
+          totalExtLength += packet->GetExtensionLength();
+
+          uint8_t* payload = packet->GetPayloadData();
+
+
+          fout.write((char*)payload, packet->GetPayloadLength());
+
+          if (c % 100 == 0) {
+            auto msg = fmt::format(
+                "[{}] Got pkt SequenceNumber={} extendedSequenceNumber={} SSRC={} length={}",
+                c,
+                packet->GetSequenceNumber(),
+                packet->GetExtendedSequenceNumber(),
+                packet->GetSSRC(),
+                packet->GetPacketLength());
+            std::cout << msg << std::endl;
+          }
+
           session.DeletePacket(packet);
         }
       } while (session.GotoNextSource());
     }
     session.EndDataAccess();
-
     RTPTime::Wait(delay);
 
     RTPTime t = RTPTime::CurrentTime();
     t -= starttime;
-    if (t > RTPTime(60.0)) done = true;
+    if (t > RTPTime(20.0)) done = true;
   }
 
-  delay = RTPTime(10.0);
+
+
+  std::string msg =
+      fmt::format("total pktCount={}, pktLen={} byte,  payLoadLen={} byte,  extLen={}",
+                  c,
+                  totalPktLength,
+                  totalPayLoadLength,
+                  totalExtLength);
+  std::cout << msg << std::endl;
+
+
+  delay = RTPTime(3.0);
   session.BYEDestroy(delay, "Time's up", 9);
 
 #ifdef RTP_SOCKETTYPE_WINSOCK

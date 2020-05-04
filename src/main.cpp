@@ -44,13 +44,12 @@ void udpTest(int argc, char* argv[]) {
 
   I_LOG("DONE.");
 
-  return 0;
 
 }
 
 
 
-int main_bkp1(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
   seeker::Logger::init();
 
   //udpTest(argc, argv);

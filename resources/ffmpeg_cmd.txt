@@ -2,6 +2,8 @@
 
 
 #将视频转换为h264 raw格式
+ffmpeg -i xxx.mp4 -vcodec libx264 -bsf: h264_mp4toannexb -f h264 xxxx.h264
+ffmpeg -i xxx.mp4 -vcodec libx264 -f h264 xxxx.h264
 
 
 #rtp推h264裸流
