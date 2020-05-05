@@ -12,10 +12,10 @@
 - [X] ffmpeg将视频文件转为h264 raw格式
 - [X] ffplay播放h264 raw格式视频
 - [X] ffmpeg使用rtp推h264 raw格式视频
-- [ ] 确认H264的NAL单元格式，以及原理，尝试将RTP中Payload的H264数据，恢复为原始H264数据
-- [ ] 尝试将RTP中payload的H264数据直接使用ffmpeg解码，看看是否能播放
 - [X] RTP receive data and save in file
 - [X] RTP receive h264 data and save it
+- [ ] 尝试将RTP中payload的H264数据直接使用ffmpeg解码，看看是否能播放
+- [ ] 确认H264的NAL单元格式，以及原理，尝试将RTP中Payload的H264数据，恢复为原始H264数据
 - [ ] RTP receive h264 data and play it
 
 
@@ -31,6 +31,7 @@
 - RTP/RTCP&RTSP的关系：https://blog.csdn.net/CSDNhuaong/article/details/78228554
 - RTP lib：https://github.com/j0r1/JRTPLIB
 - RTP server demo: https://github.com/linshufei/UbuntuReceivePicture
-- RTP H264细节：https://blog.csdn.net/lyq_csdn/article/details/81034387
+- RTP H264细节：https://blog.csdn.net/jwybobo2007/article/details/7054140
+- RTP H264细节：https://blog.csdn.net/davebobo/article/details/52994596
 - RTP H264：https://blog.csdn.net/westlor/article/details/50538058
 
