@@ -15,10 +15,15 @@
 #include "seeker/loggerApi.h"
 #include "H264Decoder.h"
 
-
+extern "C" {
+#include "SDL/SDL.h"
+};
 
 using namespace jrtplib;
 
+using std::cout;
+using std::endl;
+using std::string;
 
 class Player {
   std::condition_variable cv{};
@@ -26,11 +31,39 @@ class Player {
   std::list<std::unique_ptr<AVPacket>> packetList{};
   CH264Decoder decoder{};
 
+  int width;
+  int height;
+
+
   void worker() {
+    cout << "Worker start." << endl;
+    SDL_Window* screen;
+    // SDL 2.0 Support for multiple windows
+    screen = SDL_CreateWindow("Simplest Video Play SDL2", SDL_WINDOWPOS_UNDEFINED,
+                              SDL_WINDOWPOS_UNDEFINED, width / 2, height / 2,
+                              SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    if (!screen) {
+      string errMsg = "SDL: could not create window - exiting:";
+      errMsg += SDL_GetError();
+      cout << errMsg << endl;
+      throw std::runtime_error(errMsg);
+    }
+
+    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(screen, -1, 0);
+
+    // IYUV: Y + U + V  (3 planes)
+    // YV12: Y + V + U  (3 planes)
+    Uint32 pixformat = SDL_PIXELFORMAT_IYUV;
+
+
+    SDL_Texture* sdlTexture =
+        SDL_CreateTexture(sdlRenderer, pixformat, SDL_TEXTUREACCESS_STREAMING, width, height);
+
     AVFrame* frame = nullptr;
     AVPacket* targetPkt = nullptr;
+
     while (true) {
-      {//locked scope.
+      {  // locked scope.
         std::unique_lock<std::mutex> lk(pktListMutex);
         cv.wait(lk, [this] { return !packetList.empty(); });
         auto pkt = std::move(packetList.front());
@@ -41,9 +74,32 @@ class Player {
           packetList.pop_front();
         }
       }
-      if( targetPkt != nullptr) {
+      if (targetPkt != nullptr) {
+
         frame = decoder.decodePacket(targetPkt);
-        //TODO draw frame on SDL.
+
+        if (frame != nullptr) {
+          cout << "draw a picture." << endl;
+          SDL_UpdateYUVTexture(sdlTexture,  // the texture to update
+                               NULL,  // a pointer to the rectangle of pixels to update, or
+                                      // NULL to update the entire texture
+                               frame->data[0],      // the raw pixel data for the Y plane
+                               frame->linesize[0],  // the number of bytes between rows of
+                                                    // pixel data for the Y plane
+                               frame->data[1],      // the raw pixel data for the U plane
+                               frame->linesize[1],  // the number of bytes between rows of
+                                                    // pixel data for the U plane
+                               frame->data[2],      // the raw pixel data for the V plane
+                               frame->linesize[2]  // the number of bytes between rows of pixel
+                                                   // data for the V plane
+          );
+          SDL_RenderClear(sdlRenderer);
+          SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+          SDL_RenderPresent(sdlRenderer);
+
+        } else {
+          cout << "WARNING, frame is nullptr." << endl;
+        }
       } else {
         std::cout << "no more pkt, work finish." << std::endl;
         break;
@@ -52,7 +108,12 @@ class Player {
   }
 
  public:
-  void start() {}
+  Player(int w, int h) : width(h), height(h) {}
+
+  void start() {
+    std::thread w(&Player::worker, this);
+    w.detach();
+  }
 
   void pushPacket(std::unique_ptr<AVPacket> pkt) {
     {
@@ -110,17 +171,18 @@ int recevieAndPlay() {
   uint64_t totalPayLoadLength = 0;
   bool done = false;
 
-  std::ofstream fout("rtp_received.h264", std::ios::binary);
+  //std::ofstream fout("rtp_received.h264", std::ios::binary);
 
+
+  Player player(1280, 720);
+
+  uint8_t* packetBuffer = new uint8_t[1920*1080]();
+  int bufPos = 0;
+  int h264PktLen = 0;
+
+  uint8_t* payload;
 
   while (!done) {
-    // std::cout << "send pkt" << std::endl;
-    // status = session.SendPacket(silencebuffer, 160);
-    // if (status < 0) {
-    //  std::cerr << RTPGetErrorString(status) << std::endl;
-    //  exit(-1);
-    //}
-
     session.BeginDataAccess();
     if (session.GotoFirstSource()) {
       do {
@@ -133,27 +195,47 @@ int recevieAndPlay() {
             continue;
           }
 
-          c += 1;
-          totalPktLength += packet->GetPacketLength();
-          totalPayLoadLength += packet->GetPayloadLength();
-          totalExtLength += packet->GetExtensionLength();
 
-          uint8_t* payload = packet->GetPayloadData();
-
-
-          fout.write((char*)payload, packet->GetPayloadLength());
+          //fout.write((char*)payload, packet->GetPayloadLength());
 
           if (c % 100 == 0) {
             auto msg = fmt::format(
-                "[{}] Got pkt SequenceNumber={} extendedSequenceNumber={} SSRC={} length={}",
-                c,
-                packet->GetSequenceNumber(),
-                packet->GetExtendedSequenceNumber(),
-                packet->GetSSRC(),
-                packet->GetPacketLength());
+              "[{}] Got pkt SequenceNumber={} extendedSequenceNumber={} SSRC={} length={}",
+              c,
+              packet->GetSequenceNumber(),
+              packet->GetExtendedSequenceNumber(),
+              packet->GetSSRC(),
+              packet->GetPacketLength());
             std::cout << msg << std::endl;
           }
 
+          c += 1;
+
+          payload = packet->GetPayloadData();
+          auto len = packet->GetPayloadLength();
+          totalPayLoadLength += len;
+
+          if(packet->HasMarker()) {
+            memcpy(&packetBuffer[bufPos], payload, len);
+            int size = len + bufPos;
+            bufPos = 0;
+            //create AVPacket and send to decoder.
+            
+            std::unique_ptr<AVPacket> pkt{av_packet_alloc()};
+            
+            uint8_t* data = (uint8_t*) av_malloc(size);
+            memcpy(data, packetBuffer, size);
+
+            //TODO to be check here.
+            av_packet_from_data(pkt.get(), data,  size); //solution 1
+
+            //av_new_packet(pkt.get(), size); //solution 2
+            //pkt->data = data;
+            player.pushPacket(std::move(pkt));
+          } else {
+            memcpy(&packetBuffer[bufPos], payload, len);
+            bufPos = bufPos + len;
+          }
           session.DeletePacket(packet);
         }
       } while (session.GotoNextSource());
@@ -166,7 +248,7 @@ int recevieAndPlay() {
     if (t > RTPTime(20.0)) done = true;
   }
 
-
+  delete [] packetBuffer;
 
   std::string msg =
       fmt::format("total pktCount={}, pktLen={} byte,  payLoadLen={} byte,  extLen={}",
