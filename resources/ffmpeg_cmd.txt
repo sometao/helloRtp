@@ -8,7 +8,7 @@ ffmpeg -i xxx.mp4 -vcodec libx264 -f h264 xxxx.h264
 
 #rtp推h264裸流
 ffmpeg -re -i .\p4_out4.ts -f h264 rtp://127.0.0.1:50101
-
+ffmpeg -re -i .\p4_out4.ts -f h264 rtp://127.0.0.1:50101
 
 #ffplay播放h264裸文件
 

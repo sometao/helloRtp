@@ -28,7 +28,7 @@ using std::string;
 class Player {
   std::condition_variable cv{};
   std::mutex pktListMutex{};
-  std::list<std::unique_ptr<AVPacket>> packetList{};
+  std::list<std::unique_ptr<AVPacket, void (*)(AVPacket*)>> packetList{};
   CH264Decoder decoder{};
 
   int width;
@@ -75,8 +75,8 @@ class Player {
         }
       }
       if (targetPkt != nullptr) {
-
         frame = decoder.decodePacket(targetPkt);
+        av_packet_free(&targetPkt);
 
         if (frame != nullptr) {
           cout << "draw a picture." << endl;
@@ -109,13 +109,15 @@ class Player {
 
  public:
   Player(int w, int h) : width(h), height(h) {}
+  ~Player() { cout << "deconstruct Player" << endl; }
 
   void start() {
+    I_LOG("play started.");
     std::thread w(&Player::worker, this);
     w.detach();
   }
 
-  void pushPacket(std::unique_ptr<AVPacket> pkt) {
+  void pushPacket(std::unique_ptr<AVPacket, void (*)(AVPacket*)> pkt) {
     {
       std::lock_guard<std::mutex> lg(pktListMutex);
       packetList.push_back(std::move(pkt));
@@ -171,12 +173,13 @@ int recevieAndPlay() {
   uint64_t totalPayLoadLength = 0;
   bool done = false;
 
-  //std::ofstream fout("rtp_received.h264", std::ios::binary);
+  // std::ofstream fout("rtp_received.h264", std::ios::binary);
 
 
   Player player(1280, 720);
+  player.start();
 
-  uint8_t* packetBuffer = new uint8_t[1920*1080]();
+  uint8_t* packetBuffer = new uint8_t[1920 * 1080]();
   int bufPos = 0;
   int h264PktLen = 0;
 
@@ -195,17 +198,16 @@ int recevieAndPlay() {
             continue;
           }
 
-
-          //fout.write((char*)payload, packet->GetPayloadLength());
+          // fout.write((char*)payload, packet->GetPayloadLength());
 
           if (c % 100 == 0) {
             auto msg = fmt::format(
-              "[{}] Got pkt SequenceNumber={} extendedSequenceNumber={} SSRC={} length={}",
-              c,
-              packet->GetSequenceNumber(),
-              packet->GetExtendedSequenceNumber(),
-              packet->GetSSRC(),
-              packet->GetPacketLength());
+                "[{}] Got pkt SequenceNumber={} extendedSequenceNumber={} SSRC={} length={}",
+                c,
+                packet->GetSequenceNumber(),
+                packet->GetExtendedSequenceNumber(),
+                packet->GetSSRC(),
+                packet->GetPacketLength());
             std::cout << msg << std::endl;
           }
 
@@ -215,27 +217,33 @@ int recevieAndPlay() {
           auto len = packet->GetPayloadLength();
           totalPayLoadLength += len;
 
-          if(packet->HasMarker()) {
+          if (packet->HasMarker()) {
             memcpy(&packetBuffer[bufPos], payload, len);
             int size = len + bufPos;
             bufPos = 0;
-            //create AVPacket and send to decoder.
-            
-            std::unique_ptr<AVPacket> pkt{av_packet_alloc()};
-            
-            uint8_t* data = (uint8_t*) av_malloc(size);
+            // create AVPacket and send to decoder.
+
+
+            std::unique_ptr<AVPacket, void (*)(AVPacket*)> pkt{
+                av_packet_alloc(), [](AVPacket* p) { av_packet_free(&p); }};
+
+            uint8_t* data = (uint8_t*)av_malloc(size);
             memcpy(data, packetBuffer, size);
 
-            //TODO to be check here.
-            av_packet_from_data(pkt.get(), data,  size); //solution 1
-
-            //av_new_packet(pkt.get(), size); //solution 2
-            //pkt->data = data;
+#if 1
+            av_packet_from_data(pkt.get(), data, size);  // solution 1
+#else
+            av_new_packet(pkt.get(), size);  // solution 2
+            pkt->data = data;
+#endif
             player.pushPacket(std::move(pkt));
+
           } else {
             memcpy(&packetBuffer[bufPos], payload, len);
             bufPos = bufPos + len;
           }
+
+
           session.DeletePacket(packet);
         }
       } while (session.GotoNextSource());
@@ -245,10 +253,11 @@ int recevieAndPlay() {
 
     RTPTime t = RTPTime::CurrentTime();
     t -= starttime;
-    if (t > RTPTime(20.0)) done = true;
+    if (t > RTPTime(30.0)) done = true;
   }
 
-  delete [] packetBuffer;
+  delete[] packetBuffer;
+  // packetBuffer = nullptr;
 
   std::string msg =
       fmt::format("total pktCount={}, pktLen={} byte,  payLoadLen={} byte,  extLen={}",
@@ -265,5 +274,6 @@ int recevieAndPlay() {
 #ifdef RTP_SOCKETTYPE_WINSOCK
   WSACleanup();
 #endif  // RTP_SOCKETTYPE_WINSOCK
+  cout << "play out" << endl;
   return 0;
 }

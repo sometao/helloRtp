@@ -7,6 +7,9 @@ url:https://github.com/linshufei/UbuntuReceivePicture/blob/master/ReceiveSocket/
 ****************************************************************************/
 
 #include "H264Decoder.h"
+#include <iostream>
+
+
 CH264Decoder::CH264Decoder() {
   avcodec_register_all();
   pFormatCtx = avformat_alloc_context();
@@ -35,13 +38,21 @@ CH264Decoder::CH264Decoder() {
 }
 
 CH264Decoder::~CH264Decoder() {
+  //std::cout << "de CH264Decoder begin" << std::endl;
   avcodec_close(pCodecCtx);
+  //std::cout << "de CH264Decoder 1" << std::endl;
   av_free(pCodecCtx);
+  //std::cout << "de CH264Decoder 2" << std::endl;
   av_frame_free(&pFrame);
+  //std::cout << "de CH264Decoder 3" << std::endl;
 
   if (packet != NULL) {
-    delete packet;
+  //std::cout << "de CH264Decoder 4" << std::endl;
+    //delete packet;
+    av_packet_free(&packet);
+  //std::cout << "de CH264Decoder 5" << std::endl;
   }
+  //std::cout << "de CH264Decoder end" << std::endl;
 }
 
 int CH264Decoder::Decode(uint8_t* pDataIn, int nInSize, uint8_t* pDataOut) {

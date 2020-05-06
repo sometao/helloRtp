@@ -14,7 +14,7 @@
 - [X] ffmpeg使用rtp推h264 raw格式视频
 - [X] RTP receive data and save in file
 - [X] RTP receive h264 data and save it
-- [ ] 尝试将RTP中payload的H264数据直接使用ffmpeg解码，看看是否能播放
+- [X] 尝试将RTP中payload的H264数据直接使用ffmpeg解码，看看是否能播放，实验结果是无法播放，需要包格式转换
 - [ ] 确认H264的NAL单元格式，以及原理，尝试将RTP中Payload的H264数据，恢复为原始H264数据
 - [ ] RTP receive h264 data and play it
 
