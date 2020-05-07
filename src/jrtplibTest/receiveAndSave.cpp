@@ -80,12 +80,22 @@ int recevieAndSave() {
             continue;
           }
 
+
           c += 1;
           totalPktLength += packet->GetPacketLength();
           totalPayLoadLength += packet->GetPayloadLength();
           totalExtLength += packet->GetExtensionLength();
 
           uint8_t* payload = packet->GetPayloadData();
+
+          std::cout << "Len=" << packet->GetPayloadLength() << std::endl;;
+          for(int i = 0; i <packet->GetPayloadLength(); i++) {
+            std::cout << std::hex << (int) payload[i] << "  ";
+            if(i % 16 == 15) std::cout << std::endl;
+          }
+
+          exit(-1);
+
 
 
           fout.write((char*)payload, packet->GetPayloadLength());
