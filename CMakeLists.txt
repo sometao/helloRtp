@@ -199,7 +199,7 @@ add_executable (${PROJECT_NAME}
   "src/baseUdp/udpClient.cpp" "src/baseUdp/udpServer.cpp" 
 
 	
-	"src/jrtplibTest/HelloJrtplib.cpp" "src/pch.cpp" "src/jrtplibTest/receiveAndSave.cpp" "src/jrtplibTest/receiveAndPlay.cpp" "src/jrtplibTest/H264Decoder.cpp")
+	"src/jrtplibTest/HelloJrtplib.cpp" "src/pch.cpp" "src/jrtplibTest/receiveAndSave.cpp" "src/jrtplibTest/receiveAndPlay.cpp" "src/jrtplibTest/H264Decoder.cpp"  "src/ffmpeg/ffmpegPlayer.cpp" "src/ffmpeg/rtpdec_h264.c")
 
 
 target_include_directories( ${PROJECT_NAME}  

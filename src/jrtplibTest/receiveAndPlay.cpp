@@ -227,6 +227,7 @@ int recevieAndPlay() {
             std::unique_ptr<AVPacket, void (*)(AVPacket*)> pkt{
                 av_packet_alloc(), [](AVPacket* p) { av_packet_free(&p); }};
 
+            //av_parser_parse2();
             uint8_t* data = (uint8_t*)av_malloc(size);
             memcpy(data, packetBuffer, size);
 

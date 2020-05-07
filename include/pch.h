@@ -14,6 +14,6 @@
 #include "jrtplib3/rtperrors.h"
 #include "jrtplib3/rtplibraryversion.h"
 
-
+#include "libavformat/avformat.h"
 
 #endif

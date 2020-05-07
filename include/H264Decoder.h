@@ -43,6 +43,7 @@ private:
   int             videoIndex;
   AVCodec         *pCodec = NULL;
   AVCodecContext  *pCodecCtx = NULL;
+  AVCodecParserContext *gParser = NULL;
   AVFrame         *pFrame = NULL;
   AVPacket        *packet = NULL;
   AVFormatContext *pFormatCtx = NULL;

@@ -14,6 +14,7 @@ extern void startServer(int port);
 extern int rtpExample1(int argc, char* argv[]);
 extern int recevieAndSave();
 extern int recevieAndPlay();
+extern void ffplay();
 
 namespace {
 
@@ -56,7 +57,8 @@ int main(int argc, char* argv[]) {
   //udpTest(argc, argv);
   //rtpExample1(argc, argv);
   //recevieAndSave();
-  recevieAndPlay();
+  //recevieAndPlay();
+  ffplay();
 
   cout << "main out" << endl;
   return 0;

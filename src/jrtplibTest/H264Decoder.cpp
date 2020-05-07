@@ -25,11 +25,20 @@ CH264Decoder::CH264Decoder() {
     printf("Fail to get decoder context !\n");
   }
 
+
+
   pCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
   pCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
 
   if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
     printf("Fail to open decoder !\n");
+  }
+
+
+  gParser = av_parser_init(AV_CODEC_ID_H264);
+  if (!gParser) {
+    fprintf(stderr, "Could not create H264 parser\n");
+    exit(1);
   }
 
   pFrame = av_frame_alloc();
