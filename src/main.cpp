@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
 
   //udpTest(argc, argv);
   //rtpExample1(argc, argv);
-  recevieAndSave();
-  //recevieAndPlay();
+  //recevieAndSave();
+  recevieAndPlay();
   //ffplay();
 
   cout << "main out" << endl;

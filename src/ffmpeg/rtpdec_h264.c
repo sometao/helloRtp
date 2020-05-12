@@ -62,7 +62,7 @@ struct PayloadContext {
 #endif
 #define NAL_MASK 0x1f
 
-static const uint8_t start_sequence[] = { 0, 0, 0, 1 };
+static const uint8_t start_seq[] = { 0, 0, 0, 1 };
 
 //static void parse_profile_level_id(AVFormatContext *s,
 //                                   PayloadContext *h264_data,
@@ -117,7 +117,7 @@ int ff_h264_parse_sprop_parameter_sets(AVFormatContext *s,
                                        sizeof(decoded_packet));
         if (packet_size > 0) {
             uint8_t *dest = av_realloc(*data_ptr,
-                                       packet_size + sizeof(start_sequence) +
+                                       packet_size + sizeof(start_seq) +
                                        *size_ptr +
                                        AV_INPUT_BUFFER_PADDING_SIZE);
             if (!dest) {
@@ -127,14 +127,14 @@ int ff_h264_parse_sprop_parameter_sets(AVFormatContext *s,
             }
             *data_ptr = dest;
 
-            memcpy(dest + *size_ptr, start_sequence,
-                   sizeof(start_sequence));
-            memcpy(dest + *size_ptr + sizeof(start_sequence),
+            memcpy(dest + *size_ptr, start_seq,
+                   sizeof(start_seq));
+            memcpy(dest + *size_ptr + sizeof(start_seq),
                    decoded_packet, packet_size);
-            memset(dest + *size_ptr + sizeof(start_sequence) +
+            memset(dest + *size_ptr + sizeof(start_seq) +
                    packet_size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
 
-            *size_ptr += sizeof(start_sequence) + packet_size;
+            *size_ptr += sizeof(start_seq) + packet_size;
         }
     }
 
@@ -227,11 +227,11 @@ int ff_h264_handle_aggregated_packet(AVFormatContext *ctx, AVPacket *pkt,
             if (nal_size <= src_len) {
                 if (pass == 0) {
                     // counting
-                    total_length += sizeof(start_sequence) + nal_size;
+                    total_length += sizeof(start_seq) + nal_size;
                 } else {
                     // copying
-                    memcpy(dst, start_sequence, sizeof(start_sequence));
-                    dst += sizeof(start_sequence);
+                    memcpy(dst, start_seq, sizeof(start_seq));
+                    dst += sizeof(start_seq);
                     memcpy(dst, src, nal_size);
                     if (nal_counters)
                         nal_counters[(*src) & nal_mask]++;
@@ -268,12 +268,12 @@ int ff_h264_handle_frag_packet(AVPacket *pkt, const uint8_t *buf, int len,
     int tot_len = len;
     int pos = 0;
     if (start_bit)
-        tot_len += sizeof(start_sequence) + nal_header_len;
+        tot_len += sizeof(start_seq) + nal_header_len;
     if ((ret = av_new_packet(pkt, tot_len)) < 0)
         return ret;
     if (start_bit) {
-        memcpy(pkt->data + pos, start_sequence, sizeof(start_sequence));
-        pos += sizeof(start_sequence);
+        memcpy(pkt->data + pos, start_seq, sizeof(start_seq));
+        pos += sizeof(start_seq);
         memcpy(pkt->data + pos, nal_header, nal_header_len);
         pos += nal_header_len;
     }
@@ -312,7 +312,7 @@ static int h264_handle_packet_fu_a(AVFormatContext *ctx, AVPacket *pkt,
 //  1 on packet, 1 on partial packet
 int h264_handle_packet(AVFormatContext *ctx, 
                               AVStream *st, AVPacket *pkt, uint32_t *timestamp,
-                              const uint8_t *buf, int len, uint16_t seq,
+                              const uint8_t *buf, int len,
                               int flags)
 {
     uint8_t nal;
@@ -333,10 +333,10 @@ int h264_handle_packet(AVFormatContext *ctx,
     switch (type) {
     case 0:                    // undefined, but pass them through
     case 1:
-        if ((result = av_new_packet(pkt, len + sizeof(start_sequence))) < 0)
+        if ((result = av_new_packet(pkt, len + sizeof(start_seq))) < 0)
             return result;
-        memcpy(pkt->data, start_sequence, sizeof(start_sequence));
-        memcpy(pkt->data + sizeof(start_sequence), buf, len);
+        memcpy(pkt->data, start_seq, sizeof(start_seq));
+        memcpy(pkt->data + sizeof(start_seq), buf, len);
         COUNT_NAL_TYPE(data, nal);
         break;
 

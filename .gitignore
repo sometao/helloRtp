@@ -17,6 +17,7 @@ build/
 include/config.h
 .SET_LOCAL_PATH.cmake
 *.db
+CMakeSettings.json
 
 
 ## Ignore Visual Studio temporary files, build results, and

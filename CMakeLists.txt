@@ -27,7 +27,8 @@ set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
 
 
 if(MSVC)
-    SET(CMAKE_CXX_FLAGS "/EHsc")  # deal with MSVC Warning C4530
+    SET(CMAKE_CXX_FLAGS "/EHsc ${CMAKE_CXX_FLAGS}")  # deal with MSVC Warning C4530
+    SET(CMAKE_CXX_FLAGS "/utf-8 ${CMAKE_CXX_FLAGS}")  # set default charset to utf-8
 endif(MSVC)
 
 
@@ -134,7 +135,6 @@ set(SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE)
 configure_file(
 	"./cmake/config.h.in" 
 	"${PROJECT_SOURCE_DIR}/include/config.h"
-	@ONLY
 )
 
 

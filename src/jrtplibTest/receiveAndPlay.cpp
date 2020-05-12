@@ -1,10 +1,10 @@
+#include "config.h"
 #include "jrtplib3/rtpsession.h"
 #include "jrtplib3/rtpsessionparams.h"
 #include "jrtplib3/rtpudpv4transmitter.h"
 #include "jrtplib3/rtpipv4address.h"
 #include "jrtplib3/rtptimeutilities.h"
 #include "jrtplib3/rtppacket.h"
-#include <stdlib.h>
 #include <iostream>
 #include <list>
 #include <memory>
@@ -14,6 +14,7 @@
 #include "seeker/common.h"
 #include "seeker/loggerApi.h"
 #include "H264Decoder.h"
+#include "seeker/media.h"
 
 extern "C" {
 #include "SDL/SDL.h"
@@ -40,7 +41,7 @@ class Player {
     SDL_Window* screen;
     // SDL 2.0 Support for multiple windows
     screen = SDL_CreateWindow("Simplest Video Play SDL2", SDL_WINDOWPOS_UNDEFINED,
-                              SDL_WINDOWPOS_UNDEFINED, width / 2, height / 2,
+                              SDL_WINDOWPOS_UNDEFINED, width, height,
                               SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!screen) {
       string errMsg = "SDL: could not create window - exiting:";
@@ -78,6 +79,7 @@ class Player {
         frame = decoder.decodePacket(targetPkt);
         av_packet_free(&targetPkt);
 
+
         if (frame != nullptr) {
           cout << "draw a picture." << endl;
           SDL_UpdateYUVTexture(sdlTexture,  // the texture to update
@@ -108,7 +110,7 @@ class Player {
   }
 
  public:
-  Player(int w, int h) : width(h), height(h) {}
+  Player(int w, int h) : width(w), height(h) {}
   ~Player() { cout << "deconstruct Player" << endl; }
 
   void start() {
@@ -175,15 +177,17 @@ int recevieAndPlay() {
 
   // std::ofstream fout("rtp_received.h264", std::ios::binary);
 
+  H264NALUFromRtpPayloadParser naluParser{};
 
   Player player(1280, 720);
   player.start();
 
-  uint8_t* packetBuffer = new uint8_t[1920 * 1080]();
-  int bufPos = 0;
+
+
   int h264PktLen = 0;
 
   uint8_t* payload;
+
 
   while (!done) {
     session.BeginDataAccess();
@@ -217,32 +221,53 @@ int recevieAndPlay() {
           auto len = packet->GetPayloadLength();
           totalPayLoadLength += len;
 
-          if (packet->HasMarker()) {
-            memcpy(&packetBuffer[bufPos], payload, len);
-            int size = len + bufPos;
-            bufPos = 0;
-            // create AVPacket and send to decoder.
 
-
-            std::unique_ptr<AVPacket, void (*)(AVPacket*)> pkt{
-                av_packet_alloc(), [](AVPacket* p) { av_packet_free(&p); }};
-
-            //av_parser_parse2();
-            uint8_t* data = (uint8_t*)av_malloc(size);
-            memcpy(data, packetBuffer, size);
-
-#if 1
-            av_packet_from_data(pkt.get(), data, size);  // solution 1
-#else
-            av_new_packet(pkt.get(), size);  // solution 2
-            pkt->data = data;
-#endif
-            player.pushPacket(std::move(pkt));
-
-          } else {
-            memcpy(&packetBuffer[bufPos], payload, len);
-            bufPos = bufPos + len;
+          uint8_t* pktData;
+          size_t pktLen = 0;
+          int ret = naluParser.parse(payload, len, &pktData, pktLen);
+          if (ret < 0) {
+            W_LOG("naluParser.parse failed: {}, index={}", ret, c);
+            continue;
+          } else if (ret == 0) {
+            T_LOG("part nalu: index={}", c);
+            continue;
           }
+
+          //I_LOG("naluParser.parse success: {} pktLen={}", ret, pktLen);
+
+          //for (int i = 0; i < pktLen; i++) {
+          //  if (i % 8 == 7) {
+          //    std::cout << std::endl;
+          //  }
+          //  std::cout << "d[" << i << "]=" << (int)pktData[i];
+          //}
+
+
+          // create AVPacket and send to decoder.
+          AVPacket* p = av_packet_alloc();
+          av_packet_from_data(p, pktData, pktLen);
+
+
+          std::unique_ptr<AVPacket, void (*)(AVPacket*)> pkt{
+              p, [](AVPacket* p) {
+                av_packet_free(&p);
+              }};
+
+          // av_parser_parse2();
+          //          uint8_t* data = (uint8_t*)av_malloc(packetLen);
+          //          memcpy(data, packetBuffer, packetLen);
+          //
+          //#if 1
+          //          av_packet_from_data(pkt.get(), data, packetLen);  // solution 1
+          //#else
+          //          av_new_packet(pkt.get(), size);  // solution 2
+          //          pkt->data = data;
+          //#endif
+
+
+          // av_parser_parse2();
+
+          player.pushPacket(std::move(pkt));
 
 
           session.DeletePacket(packet);
@@ -257,8 +282,7 @@ int recevieAndPlay() {
     if (t > RTPTime(30.0)) done = true;
   }
 
-  delete[] packetBuffer;
-  // packetBuffer = nullptr;
+
 
   std::string msg =
       fmt::format("total pktCount={}, pktLen={} byte,  payLoadLen={} byte,  extLen={}",
