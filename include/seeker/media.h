@@ -5,7 +5,9 @@ extern "C" {
 #include "libavutil/mem.h"
 }
 
-class H264NALUFromRtpPayloadParser {
+
+//TODO throw exception instead of return negative value.
+class RtpToH264Parser {
  private:
   uint8_t *buff;
   uint8_t start_seq[4];
@@ -13,22 +15,27 @@ class H264NALUFromRtpPayloadParser {
   const size_t size;
   const uint8_t start_code_len = 4;
 
-
   void pushData(const uint8_t *data, int len) {
+    if (pos + len > size) {
+      auto msg = fmt::format(
+          "RtpToH264Parser pushData failed: pos[{}] + len[{}] > size[{}]", pos, len, size);
+      E_LOG(msg);
+      throw std::runtime_error(msg);
+    }
     memcpy(buff + pos, data, len);
     pos += len;
   }
 
   size_t pullData(uint8_t **outData) {
     //*outData = new uint8_t[pos];
-    *outData = (uint8_t*)av_malloc(pos);
+    *outData = (uint8_t *)av_malloc(pos);
     memcpy(*outData, buff, pos);
     size_t len = pos;
     pos = 0;
     return len;
   }
 
-  int handleSTAPa(const uint8_t *data, int len, uint8_t **outData, size_t &outLen) {
+  size_t handleSTAPa(const uint8_t *data, int len, uint8_t **outData) {
     const uint8_t *src = data;
     int src_len = len;
     while (src_len > 2) {
@@ -40,28 +47,24 @@ class H264NALUFromRtpPayloadParser {
         pushData(start_seq, start_code_len);
         pushData(src, nal_size);
       } else {
-        W_LOG("nal size exceeds length: {} {}", nal_size, src_len);
-        return -1;
+        throw std::runtime_error(fmt::format("nal size exceeds length: {} {}", nal_size, src_len));
       }
       // eat what we handled
       src += nal_size;
       src_len -= nal_size;
     }
-
-    outLen = pullData(outData);
-    return outLen;
+    return pullData(outData);
   }
 
 
-  int handleFUa(const uint8_t *data, int len, uint8_t **outData, size_t &outLen) {
+  size_t handleFUa(const uint8_t *data, int len, uint8_t **outData) {
     uint8_t fu_indicator, fu_header, start_bit, end_bit, nal_type, nal_header;
 
     if (len < 3) {
-      E_LOG("Too short data for FU-A H.264 RTP packet");
-      return -1;
+      throw std::runtime_error(fmt::format("Too short data for FU-A H.264 RTP packet"));
     }
     /*
-       
+
       FU indicator: data[0]
       +---------------+
       |0|1|2|3|4|5|6|7|
@@ -97,18 +100,16 @@ class H264NALUFromRtpPayloadParser {
       return 0;
     } else if (end_bit) {
       pushData(data, len);
-      outLen = pullData(outData);
-      return outLen;
+      return pullData(outData);
     } else {
       pushData(data, len);
       return 0;
     }
-
   }
 
 
  public:
-  H264NALUFromRtpPayloadParser(size_t buffSize = 1024 * 1024) : size(buffSize), pos(0) {
+  RtpToH264Parser(size_t buffSize = 1024 * 1024) : size(buffSize), pos(0) {
     buff = new uint8_t[buffSize];
 
 
@@ -117,7 +118,7 @@ class H264NALUFromRtpPayloadParser {
     start_seq[2] = 0;
     start_seq[3] = 1;
 
-    std::cout << "H264NALUFromRtpPayloadParser created." << std::endl;
+    std::cout << "RtpToH264Parser created." << std::endl;
 
 
     D_LOG("start_seq size: {}", sizeof(start_seq));
@@ -127,7 +128,7 @@ class H264NALUFromRtpPayloadParser {
     D_LOG("start_seq[3]: {}", start_seq[3]);
   }
 
-  ~H264NALUFromRtpPayloadParser() {
+  ~RtpToH264Parser() {
     if (buff != nullptr) {
       delete buff;
     }
@@ -135,13 +136,13 @@ class H264NALUFromRtpPayloadParser {
 
   /*
   return:   0 a part of packet, not finish
-            < 0 some error
-            > 0 read packet finish.
+            > 0 read packet finish, packet length returned.
+  throw runtime_error, when parse failed.
   */
-  int parse(const uint8_t *data, int len, uint8_t **outData, size_t &outLen) {
+  size_t parse(const uint8_t *data, int len, uint8_t **outData) {
     uint8_t naluHeader;
     uint8_t naluType;
-    int result = 0;
+    size_t outLen = 0;
 
     naluHeader = data[0];
     naluType = naluHeader & 0x1f;
@@ -153,35 +154,30 @@ class H264NALUFromRtpPayloadParser {
         pushData(start_seq, start_code_len);
         pushData(data, len);
         outLen = pullData(outData);
-        result = outLen;
         pos = 0;
         break;
       case 24:  // STAP-A (one packet, multiple nals)
         // consume the STAP-A NAL
         data++;
         len--;
-        result = handleSTAPa(data, len, outData, outLen);
-        pos = 0;
+        outLen = handleSTAPa(data, len, outData);
         break;
       case 25:  // STAP-B
       case 26:  // MTAP-16
       case 27:  // MTAP-24
       case 29:  // FU-B
-        W_LOG("Unsupported NALU. RTP H.264 NAL unit type: {}", naluType);
-        result = -2;
+        throw std::runtime_error(fmt::format("Unsupported NALU. RTP H.264 NAL unit type: {}", naluType));
         break;
       case 28:  // FU-A (fragmented nal)
-        result = handleFUa(data, len, outData, outLen);
+        outLen = handleFUa(data, len, outData);
         break;
       case 30:  // undefined
       case 31:  // undefined
       default:
-        W_LOG("NALU. Undefined type : {}", naluType);
-        result = -1;
+        throw std::runtime_error(fmt::format("NALU. Undefined type : {}", naluType));
         break;
     }
 
-
-    return result;
+    return outLen;
   }
 };

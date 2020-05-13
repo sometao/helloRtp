@@ -177,7 +177,7 @@ int recevieAndPlay() {
 
   // std::ofstream fout("rtp_received.h264", std::ios::binary);
 
-  H264NALUFromRtpPayloadParser naluParser{};
+  RtpToH264Parser naluParser{};
 
   Player player(1280, 720);
   player.start();
@@ -224,18 +224,21 @@ int recevieAndPlay() {
 
           uint8_t* pktData;
           size_t pktLen = 0;
-          int ret = naluParser.parse(payload, len, &pktData, pktLen);
-          if (ret < 0) {
-            W_LOG("naluParser.parse failed: {}, index={}", ret, c);
-            continue;
-          } else if (ret == 0) {
-            T_LOG("part nalu: index={}", c);
+
+          try {
+            pktLen = naluParser.parse(payload, len, &pktData);
+            if(pktLen == 0) {
+              T_LOG("part nalu: index={}", c);
+              continue;
+            }
+          } catch (const std::exception& ex) {
+            W_LOG(ex.what());
             continue;
           }
+          
+          // I_LOG("naluParser.parse success: {} pktLen={}", ret, pktLen);
 
-          //I_LOG("naluParser.parse success: {} pktLen={}", ret, pktLen);
-
-          //for (int i = 0; i < pktLen; i++) {
+          // for (int i = 0; i < pktLen; i++) {
           //  if (i % 8 == 7) {
           //    std::cout << std::endl;
           //  }
@@ -249,9 +252,7 @@ int recevieAndPlay() {
 
 
           std::unique_ptr<AVPacket, void (*)(AVPacket*)> pkt{
-              p, [](AVPacket* p) {
-                av_packet_free(&p);
-              }};
+              p, [](AVPacket* p) { av_packet_free(&p); }};
 
           // av_parser_parse2();
           //          uint8_t* data = (uint8_t*)av_malloc(packetLen);
