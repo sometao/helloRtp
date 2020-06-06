@@ -1,3 +1,9 @@
+/**
+@project seeker
+@author Tao Zhang
+@since 2020/5/11
+@version 0.0.1-SNAPSHOT 2020/5/13
+*/
 #include <iostream>
 #include "seeker/loggerApi.h"
 

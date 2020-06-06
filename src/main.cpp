@@ -1,5 +1,6 @@
 #include "littleGift.h"
 #include "seeker/logger.h"
+#include "seeker/loggerApi.h"
 #include <iostream>
 #include <string>
 #include "jrtplib3/rtpsession.h"

@@ -80,21 +80,21 @@ find_library(SDL_LIBRARY SDL2.lib)
 #  jrtplib.
 #-------------------------------------
 find_path(JRTPLIB_INCLUDE_DIR jrtplib3/rtpsession.h REQUIRED)
-find_path(JThread_INCLUDE_DIR jthread/jthread.h REQUIRED)
+#find_path(JThread_INCLUDE_DIR jthread/jthread.h REQUIRED)
 if(WIN32)
 	if(BUILD_DEBUG) 
-		find_library(JThread_LIBRARY jthread_d.lib REQUIRED)
+		#find_library(JThread_LIBRARY jthread_d.lib REQUIRED)
 		find_library(JRTPLIB_LIBRARY jrtplib_d.lib REQUIRED)
 	else()
-		find_library(JThread_LIBRARY jthread.lib REQUIRED)
+		#find_library(JThread_LIBRARY jthread.lib REQUIRED)
 		find_library(JRTPLIB_LIBRARY jrtplib.lib REQUIRED)
 	endif()
 elseif(UNIX)
 	if(BUILD_DEBUG) 
-		find_library(JThread_LIBRARY jthread_d.a REQUIRED)
+		#find_library(JThread_LIBRARY jthread_d.a REQUIRED)
 		find_library(JRTPLIB_LIBRARY jrtplib_d.a REQUIRED)
 	else()
-		find_library(JThread_LIBRARY jthread.a REQUIRED)
+		#find_library(JThread_LIBRARY jthread.a REQUIRED)
 		find_library(JRTPLIB_LIBRARY jrtplib.a REQUIRED)
 	endif()
 endif()
@@ -205,7 +205,7 @@ add_executable (${PROJECT_NAME}
 target_include_directories( ${PROJECT_NAME}  
 	PRIVATE 
 		${PROJECT_SOURCE_DIR}/include
-		${JThread_INCLUDE_DIR}
+		#${JThread_INCLUDE_DIR}
 		${JRTPLIB_INCLUDE_DIR}
 		${AVCODEC_INCLUDE_DIR} 
 		${AVFORMAT_INCLUDE_DIR} 
@@ -224,7 +224,7 @@ target_include_directories( ${PROJECT_NAME}
 
 target_link_libraries( ${PROJECT_NAME}  
 	PRIVATE 
-		${JThread_LIBRARY}
+		#${JThread_LIBRARY}
 		${JRTPLIB_LIBRARY}
 		${WS2_LIBRARY} 
 		${CMAKE_THREAD_LIBS_INIT}

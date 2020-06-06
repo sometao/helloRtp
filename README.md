@@ -46,6 +46,7 @@
 
 ### Referance
 - RFC6184: RTP Payload Format for H.264 Video: https://tools.ietf.org/html/rfc6184
+- RFC 3550: RTP: A Transport Protocol for Real-Time Applications: https://tools.ietf.org/html/rfc3550
 - H264 的 RTP 格式封装: https://blog.csdn.net/yongkai0214/article/details/88872076
 - RFC3550中文版：https://www.jianshu.com/p/d85a6a7b3189  
 - RTP 学习笔记：https://www.cnblogs.com/awiki/p/4340917.html
