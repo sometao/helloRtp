@@ -4,7 +4,18 @@ ADTS头为七个字节：
 
 
 
+ADTS head
 
+```
+   0                   1                   2                   
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  28 bit
+  |1 1 1 1 1 1 1 1 1 1 1 1|I|LYR|p|prf|samplin|p|chanl|o|h| adts_fixed_header
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |c|c|    AAC frame length     |adts buf fullness    |ndb| adts_variable_header
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  from https://blog.csdn.net/tx3344/article/details/7414543
+```
 
 
 jrtplib 发送 ADTS

@@ -17,3 +17,25 @@ ffmpeg -re -i .\p4_out4.ts -f h264 rtp://127.0.0.1:50101
 ffplay
 
 
+# https://trac.ffmpeg.org/wiki/Encode/AAC
+# http://ffmpeg.org/ffmpeg-codecs.html#aac
+#提取 AAC 音频码流
+
+-vn / -an /
+
+ffmpeg -i input.wav -c:a libfaac -q:a 330 -cutoff 15000 output.m4a
+
+ffmpeg -i input.wav output.m4a
+
+# Constant bit rate using -b:a: 
+ffmpeg -i input.wav -c:a aac -b:a 160k output.m4a
+ffmpeg -i FILENAME -vn -c:a aac -b:a 160k output.m4a
+# Variable bit rate using -q:a: [实验中]
+ffmpeg -i input.wav -c:a aac -q:a 2 output.m4a
+
+
+
+aac_adtstoasc
+
+
+
