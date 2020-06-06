@@ -18,7 +18,9 @@ ADTS head
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
   |c|c|    AAC frame length     |adts buf fullness    |ndb| adts_variable_header
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  reference: https://blog.csdn.net/tx3344/article/details/7414543
+  reference: 
+  - https://wiki.multimedia.cx/index.php?title=ADTS
+  - https://www.jianshu.com/p/b5ca697535bd
 ```
 
 
@@ -27,14 +29,15 @@ AAC 发送ADTS  与 接收
 AAC 转PCM
 
 
-AAC 格式分析 【好文，推荐，LATM讲的很清楚】
-http://blog.chinaunix.net/uid-26084833-id-3416600.html
+AAC 格式分析 【好文，推荐，LATM 讲的很清楚, ADTS也讲的很好】
+https://blog.csdn.net/markman101/article/details/6616170/
 
 
 
-【多媒体封装格式详解】--- AAC ADTS格式分析  【靠谱,ADTS 讲的很清楚】
+ADTS讲解文章
 https://blog.csdn.net/tx3344/article/details/7414543
-
+https://www.jianshu.com/p/b5ca697535bd
+https://wiki.multimedia.cx/index.php?title=ADTS  【清晰】
 
 
 
@@ -56,8 +59,59 @@ PayloadMux
 
 muxConfigPresent = 1  => in-of-band
 muxConfigPresent = 0  => out-of-band
-StreamMuxConfig
+StreamMuxConfig   => config in SDP
 useSameStreamMux
+
+AudioSpecificConfig => MPS-asc in SDP
+
+AudioSpecificConfig 和 StreamMuxConfig 区别？
+
+ADTS
+```
+   ADTS AudioMuxElement
+   +------------------------------+
+   | ADTS header |    AAC ES      |
+   +------------------------------+
+
+
+   AudioMuxElement (out-of-band)
+   +------------------------------+
+   | PayloadLengthInfo |  AAC ES  |
+   +------------------------------+
+
+```
+
+
+LATM
+```
+   LATM AudioMuxElement (in-of-band)
+   +----------------------------------------------------+
+   | AudioSpecificConfig | PayloadLengthInfo |  AAC ES  |
+   +----------------------------------------------------+
+
+
+   LATM AudioMuxElement (out-of-band)
+   +------------------------------+
+   | PayloadLengthInfo |  AAC ES  |
+   +------------------------------+
+
+```
+
+
+LATM over RTP
+```
+   RTP (one audioMuxElement in RTP packet, marker = 1 in RTP header)
+   +------------------------------------+
+   | RTP header |    AudioMuxElement    |
+   +------------------------------------+
+
+   RTP (not last audioMuxElement fragment in RTP packet,  marker = 0 in RTP header)
+   +------------------------------------+
+   | RTP header | AudioMuxEle fragment  |
+   +------------------------------------+
+
+```
+
 
 
 RTP Payload Format for MPEG-2 and MPEG-4 AAC Streams
@@ -67,6 +121,10 @@ https://tools.ietf.org/html/draft-ietf-avt-rtp-mpeg2aac-02
 
 RTP Payload Format for MPEG-2 AAC Streams
 https://www.ietf.org/proceedings/46/I-D/draft-ietf-avt-rtp-mpeg2aac-00.txt
+
+
+AAC ES流 添加ADTS头；
+https://blog.csdn.net/acm2008/article/details/42971473
 
 
 en.wikipedia.org/wiki/Advanced_Audio_Coding
@@ -86,6 +144,8 @@ PCM文件格式简介
 https://blog.csdn.net/ce123_zhouwei/article/details/9359389
 
 
+fdk AAC
+http://wiki.hydrogenaud.io/index.php?title=Fraunhofer_FDK_AAC
 
 AAC编码流程
 https://www.cnblogs.com/ranson7zop/p/7200123.html
@@ -95,6 +155,16 @@ AAC帧格式及编码介绍
 https://blog.csdn.net/jgdu1981/article/details/6870577
 
 
+FFmpeg/libavformat/latmenc.c 
+https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/latmenc.c
+
+
+FFmpeg/libavformat/rtpdec_latm.c : latm_parse_packet
+https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/rtpdec_latm.c
+
+
+FFmpeg/libavformat/rtpenc_latm.c : ff_rtp_send_latm
+https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/rtpenc_latm.c
 
 
 关于AAC音频格式更详细的情况，可参考维基百科
