@@ -7,6 +7,10 @@ ADTS头为七个字节：
 ADTS head
 
 ```
+  total 7 bytes(56 bits)
+  28 bits for adts_fixed_header, 
+  28 bits for adts_variable_header.
+
    0                   1                   2                   
    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  28 bit
