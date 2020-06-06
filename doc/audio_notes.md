@@ -14,7 +14,7 @@ ADTS head
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
   |c|c|    AAC frame length     |adts buf fullness    |ndb| adts_variable_header
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  from https://blog.csdn.net/tx3344/article/details/7414543
+  reference: https://blog.csdn.net/tx3344/article/details/7414543
 ```
 
 
