@@ -40,6 +40,8 @@ https://www.jianshu.com/p/b5ca697535bd
 https://wiki.multimedia.cx/index.php?title=ADTS  【清晰】
 
 
+RTP Payload Format for Transport of MPEG-4 Elementary Streams
+https://tools.ietf.org/html/rfc3640
 
 
 ffmpeg/ffplay  aac latm test.
@@ -63,6 +65,13 @@ StreamMuxConfig   => config in SDP
 useSameStreamMux
 
 AudioSpecificConfig => MPS-asc in SDP
+
+Audio Specific Config在下面的文章有定义：
+https://wiki.multimedia.cx/index.php?title=MPEG-4_Audio#Audio_Specific_Config
+
+Audio Specific Config说明
+https://blog.csdn.net/jwybobo2007/article/details/9221657
+
 
 AudioSpecificConfig 和 StreamMuxConfig 区别？
 
@@ -111,6 +120,30 @@ LATM over RTP
    +------------------------------------+
 
 ```
+
+
+
+从零开始写一个RTSP服务器（五）RTP传输AAC
+https://blog.csdn.net/weixin_42462202/article/details/99200935
+
+
+
+AAC数据块长度是可变的，需要ADTS头来对数据进行分割；
+ADTS头为七个字节
+
+
+aac音频数据的rtp封包过程（android）  ADTS 转 LATM
+https://blog.csdn.net/nihao1113/article/details/81675317
+
+aac_adtstoasc bitstream filter
+https://blog.csdn.net/liuyl2016/article/details/53080733
+
+
+AAC音频文件添加ADTS头
+https://blog.csdn.net/chailongger/article/details/84376914
+
+RTP Payload Format for Transport of MPEG-4 Elementary Streams
+https://tools.ietf.org/html/rfc3640
 
 
 

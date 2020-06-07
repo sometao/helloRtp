@@ -61,4 +61,5 @@
 - RTP H264细节：https://blog.csdn.net/davebobo/article/details/52994596
 - RTP H264：https://blog.csdn.net/westlor/article/details/50538058
 - 接收RTP H264代码：https://github.com/gityf/img-video/blob/master/video/ffmpeg-h264-sdl-view/main.c
+- 如何发送和接收RTP封包的H264，用FFmpeg解码: https://blog.csdn.net/zhoubotong2012/article/details/86510032
 

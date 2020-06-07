@@ -39,3 +39,15 @@ aac_adtstoasc
 
 
 
+ffmpeg  -re -i <media_file> -an -vcodec copy -f rtp rtp://<IP>:5004 -vn -acodec copy -f rtp rtp://<IP>:5005 > test.sdp
+
+ffmpeg  -re -i <media_file> -an -vcodec copy -f rtp rtp://<IP>:5004 > test.sdp
+ffmpeg  -re -i <media_file> -vn -acodec copy -f rtp rtp://<IP>:5005 > test.sdp
+
+
+ffmpeg  -re -i <media_file> -vn -acodec copy -f rtp rtp://127.0.0.1:50101 > audio1.sdp
+
+
+
+ffplay -protocol_whitelist "file,udp,rtp" -i rtp://127.0.0.1:50101
+ffplay -protocol_whitelist "file,udp,rtp" -i audio1.sdp
