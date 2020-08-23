@@ -2,10 +2,16 @@
 @project seeker
 @author Tao Zhang
 @since 2020/3/1
-@version 0.0.1-SNAPSHOT 2020/5/13
+@version 0.0.1-SNAPSHOT 2020/6/13
 */
 #pragma once
+
+#ifndef SPDLOG_ACTIVE_LEVEL
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+#endif
+
 #include "spdlog/spdlog.h"
+
 
 
 // short for logger, you may copy following define to your CPP/H file.

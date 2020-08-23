@@ -29,20 +29,6 @@ AAC 发送ADTS  与 接收
 AAC 转PCM
 
 
-AAC 格式分析 【好文，推荐，LATM 讲的很清楚, ADTS也讲的很好】
-https://blog.csdn.net/markman101/article/details/6616170/
-
-
-
-ADTS讲解文章
-https://blog.csdn.net/tx3344/article/details/7414543
-https://www.jianshu.com/p/b5ca697535bd
-https://wiki.multimedia.cx/index.php?title=ADTS  【清晰】
-
-
-RTP Payload Format for Transport of MPEG-4 Elementary Streams
-https://tools.ietf.org/html/rfc3640
-
 
 ffmpeg/ffplay  aac latm test.
 
@@ -66,11 +52,7 @@ useSameStreamMux
 
 AudioSpecificConfig => MPS-asc in SDP
 
-Audio Specific Config在下面的文章有定义：
-https://wiki.multimedia.cx/index.php?title=MPEG-4_Audio#Audio_Specific_Config
 
-Audio Specific Config说明
-https://blog.csdn.net/jwybobo2007/article/details/9221657
 
 
 AudioSpecificConfig 和 StreamMuxConfig 区别？
@@ -123,103 +105,153 @@ LATM over RTP
 
 
 
-从零开始写一个RTSP服务器（五）RTP传输AAC
-https://blog.csdn.net/weixin_42462202/article/details/99200935
+
+
+### RTP Payload Format for Transport of MPEG-4 Elementary Streams
+
+
+2.11.  Global Structure of Payload Format
+```
+         +---------+-----------+-----------+---------------+
+         | RTP     | AU Header | Auxiliary | Access Unit   |
+         | Header  | Section   | Section   | Data Section  |
+         +---------+-----------+-----------+---------------+
+
+                   <----------RTP Packet Payload----------->
+
+            Figure 1: Data sections within an RTP packet
+```
 
 
 
-AAC数据块长度是可变的，需要ADTS头来对数据进行分割；
-ADTS头为七个字节
+3.2.  RTP Payload Structure
 
+3.2.1.  The AU Header Section
+```
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- .. -+-+-+-+-+-+-+-+-+-+
+      |AU-headers-length|AU-header|AU-header|      |AU-header|padding|
+      |                 |   (1)   |   (2)   |      |   (n)   | bits  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- .. -+-+-+-+-+-+-+-+-+-+
 
-aac音频数据的rtp封包过程（android）  ADTS 转 LATM
-https://blog.csdn.net/nihao1113/article/details/81675317
-
-aac_adtstoasc bitstream filter
-https://blog.csdn.net/liuyl2016/article/details/53080733
-
-
-AAC音频文件添加ADTS头
-https://blog.csdn.net/chailongger/article/details/84376914
-
-RTP Payload Format for Transport of MPEG-4 Elementary Streams
-https://tools.ietf.org/html/rfc3640
-
-
-
-RTP Payload Format for MPEG-2 and MPEG-4 AAC Streams
-https://tools.ietf.org/html/draft-ietf-avt-rtp-mpeg2aac-02
+                   Figure 2: The AU Header Section
+```
+- 如果AU-header被配置为空，那么`AU-headers-length`字段也不会存在
+- 如果AU-header配置为非空，那么`AU-headers-length`为两个字节，代表所有的AU-header连接起来的bit总数（不包括补齐的bit数）；
+- AU-header的bit总长度，需要补齐到8的倍数，最多补7个bit
 
 
 
-RTP Payload Format for MPEG-2 AAC Streams
-https://www.ietf.org/proceedings/46/I-D/draft-ietf-avt-rtp-mpeg2aac-00.txt
+3.2.1.1.  The AU-header
+```
+
+      +---------------------------------------+
+      |     AU-size                           |
+      +---------------------------------------+
+      |     AU-Index / AU-Index-delta         |
+      +---------------------------------------+
+      |     CTS-flag                          |
+      +---------------------------------------+
+      |     CTS-delta                         |
+      +---------------------------------------+
+      |     DTS-flag                          |
+      +---------------------------------------+
+      |     DTS-delta                         |
+      +---------------------------------------+
+      |     RAP-flag                          |
+      +---------------------------------------+
+      |     Stream-state                      |
+      +---------------------------------------+
+
+   Figure 3: The fields in the AU-header.  If used, the AU-Index field
+             only occurs in the first AU-header within an AU Header
+             Section; in any other AU-header, the AU-Index-delta field
+             occurs instead.
+```
 
 
-AAC ES流 添加ADTS头；
-https://blog.csdn.net/acm2008/article/details/42971473
+3.2.2.  The Auxiliary Section
+```
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- .. -+-+-+-+-+-+-+-+-+
+      | auxiliary-data-size   | auxiliary-data       |padding bits |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- .. -+-+-+-+-+-+-+-+-+
+
+           Figure 4: The fields in the Auxiliary Section
+```
 
 
-en.wikipedia.org/wiki/Advanced_Audio_Coding
+3.2.3.  The Access Unit Data Section
+```
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |AU(1)                                                          |
+      +                                                               |
+      |                                                               |
+      |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |               |AU(2)                                          |
+      +-+-+-+-+-+-+-+-+                                               |
+      |                                                               |
+      |                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                               | AU(n)                         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |AU(n) continued|
+      |-+-+-+-+-+-+-+-+
+
+        Figure 5: Access Unit Data Section; each AU is octet-aligned.
+```
+
+
+3.3.  Usage of this Specification
+3.3.1.  General
+```
+a=rtpmap:<payload type> <encoding name>/<clock rate>[/<encoding parameters>]
+```
+For audio streams, \<encoding parameters\> specifies the number of audio channels
+
+
+3.3.2.  The Generic Mode
+```
+   m=video 49230 RTP/AVP 96
+   a=rtpmap:96 mpeg4-generic/1000
+   a=fmtp:96 streamtype=3; profile-level-id=1807; mode=generic; objectType=2; config=0842237F24001FB400094002C0; sizeLength=10; CTSDeltaLength=16; randomAccessIndication=1; streamStateIndication=4
+```
+- `mode=generic` stream的类型为 generic
+- `sizeLength=10` 含义： AU header 中 AU-size 字段的bit长度为10；
+- `CTSDeltaLength=16`  含义： AU header 中 CTS-delta 字段的bit长度为16；
+- `randomAccessIndication=1`  含义： AU header 中包含1 bit长度的RAP-flag；
+- `streamStateIndication=4`  含义： AU header 中包含 4 bit长度的Stream-State字段；
+
+
+3.3.4.  Variable Bit-rate CELP
+```
+   m=audio 49230 RTP/AVP 96
+   a=rtpmap:96 mpeg4-generic/16000/1
+   a=fmtp:96 streamtype=5; profile-level-id=14; mode=CELP-vbr; config=
+   440F20; sizeLength=6; indexLength=2; indexDeltaLength=2;
+   constantDuration=160; maxDisplacement=5
+```
+- `mode=generic` stream的类型为 CELP-vbr
+- `sizeLength=6` 含义： AU header 中 AU-size 字段的bit长度为6；
+- `indexLength=2`  含义： AU header 中 AU-Index 字段的bit长度为2，AU-index字段只出现在首个AU里，实际上值固定为0；
+- `indexDeltaLength=2`  含义： AU header 中 AU-Index-delta 字段的bit长度为2；
+- 在AU-header Section中，最前面是16 bit的`AU-headers-length`字段，紧接着就是各个AU-header
+- CELP frames 的 Access Unit 时长是固定的，通过`constantDuration`参数指定；
 
 
 
-RTP载荷AAC音频
-https://blog.csdn.net/KayChanGEEK/article/details/102468133
-
-RTP音频AAC封包
-https://www.cnblogs.com/Function-All/p/12802107.html	
-
-PCM音频数据
-https://www.jianshu.com/p/fd43c1c82945
-
-PCM文件格式简介
-https://blog.csdn.net/ce123_zhouwei/article/details/9359389
-
-
-fdk AAC
-http://wiki.hydrogenaud.io/index.php?title=Fraunhofer_FDK_AAC
-
-AAC编码流程
-https://www.cnblogs.com/ranson7zop/p/7200123.html
-
-
-AAC帧格式及编码介绍
-https://blog.csdn.net/jgdu1981/article/details/6870577
-
-
-FFmpeg/libavformat/latmenc.c 
-https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/latmenc.c
-
-
-FFmpeg/libavformat/rtpdec_latm.c : latm_parse_packet
-https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/rtpdec_latm.c
-
-
-FFmpeg/libavformat/rtpenc_latm.c : ff_rtp_send_latm
-https://github.com/FFmpeg/FFmpeg/blob/master/libavformat/rtpenc_latm.c
-
-
-关于AAC音频格式更详细的情况，可参考维基百科
-http://en.wikipedia.org/wiki/Advanced_Audio_Coding
-
-
-AAC 封装 【各种编码器介绍】
-https://blog.csdn.net/evsqiezi/article/details/51602803
+3.3.5.  Low Bit-rate AAC
+```
+   m=audio 49230 RTP/AVP 96
+   a=rtpmap:96 mpeg4-generic/22050/1
+   a=fmtp:96 streamtype=5; profile-level-id=14; mode=AAC-lbr; config=
+   1388; sizeLength=6; indexLength=2; indexDeltaLength=2;
+   constantDuration=1024; maxDisplacement=5
+```
+- `mode=generic` stream的类型为 AAC-lbr
+- `sizeLength=6` 含义： AU header 中 AU-size 字段的bit长度为6；
+- `indexLength=2`  含义： AU header 中 AU-Index 字段的bit长度为2，AU-index字段只出现在首个AU里，实际上值固定为0；
+- `indexDeltaLength=2`  含义： AU header 中 AU-Index-delta 字段的bit长度为2；
+- 在AU-header Section中，最前面是16 bit的`AU-headers-length`字段，紧接着就是各个AU-header
+- AAC frames 的 Access Unit 时长是固定的，通过`constantDuration`参数指定；
 
 
 
-AAC的 LATM 格式?
 
-AAC的ES流？
-
-ISO/IEC 14496-3
-http://www.doc88.com/p-0337882090192.html
-
-https://wiki.multimedia.cx/index.php?title=MPEG-4_Audio
-
-
-
- AAC_LC用LATM封装header信息解析 
- 
- https://my.oschina.net/zhangxu0512/blog/204070
